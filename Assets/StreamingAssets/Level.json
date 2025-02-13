@@ -1,0 +1,59 @@
+{
+  "locations": [
+    {
+      "name": "Forest",
+      "levels": [
+        {
+          "levelNumber": "level1",
+          "levelIndex": 1,
+          "difficulty": 1,
+          "bombCount": 7,
+          "rewardPoints": 100,
+          "fieldWidth": 5,
+          "fieldHeight": 5
+        },
+        {
+          "nameLevel": "level2",
+          "levelIndex": 2,
+          "difficulty": 2,
+          "bombCount": 9,
+          "rewardPoints": 110,
+          "fieldWidth": 7,
+          "fieldHeight": 7
+        },
+        {
+          "nameLevel": "level3",
+          "levelIndex": 3,
+          "difficulty": 3,
+          "bombCount": 11,
+          "rewardPoints": 130,
+          "fieldWidth": 10,
+          "fieldHeight": 10
+        },
+        {
+          "nameLevel": "level4",
+          "levelIndex": 4,
+          "difficulty": 4,
+          "bombCount": 15,
+          "rewardPoints": 150,
+          "fieldWidth": 12,
+          "fieldHeight": 12
+        }
+      ]
+    },
+    {
+      "name": "Desert",
+      "levels": [
+        {
+          "nameLevel": "level11",
+          "levelIndex": 11,
+          "difficulty": 11,
+          "bombCount": 50,
+          "rewardPoints": 300,
+          "fieldWidth": 30,
+          "fieldHeight": 30
+        }
+      ]
+    }
+  ]
+}
