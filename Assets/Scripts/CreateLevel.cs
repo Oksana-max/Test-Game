@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections;
 using System.IO;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 
 public class CreateLevel : MonoBehaviour
@@ -24,8 +25,10 @@ public class CreateLevel : MonoBehaviour
     public GameObject menuLost;
     public GameObject menuWon;
     public GameObject menuPause;
+    public GameObject menuPrompt;
     GameObject instantiatedCell;
     GameObject[,] gridCell;
+    public Button buttonPropmt;
     Vector3 terrainCenter;
     private Vector3 cameraOriginalPosition;
     private bool isZoomed = false;
@@ -36,64 +39,22 @@ public class CreateLevel : MonoBehaviour
     public GameData gameData;
     public PlayerData playerData;
 
-    void LoadGameData()
-    {
-        string filePath = Path.Combine(Application.streamingAssetsPath, "Level.json");
+    // void LoadGameData()
+    // {
+    //     string filePath = Path.Combine(Application.streamingAssetsPath, "Level.json");
 
-        if (File.Exists(filePath))
-        {
-            string jsonData = File.ReadAllText(filePath);
-            gameData = JsonUtility.FromJson<GameData>(jsonData);
-            Debug.Log("Данные успешно загружены!");
-        }
-        else
-        {
-            Debug.LogError("Файл с данными не найден: " + filePath);
-        }
-    }
+    //     if (File.Exists(filePath))
+    //     {
+    //         string jsonData = File.ReadAllText(filePath);
+    //         gameData = JsonUtility.FromJson<GameData>(jsonData);
+    //         Debug.Log("Данные успешно загружены!");
+    //     }
+    //     else
+    //     {
+    //         Debug.LogError("Файл с данными не найден: " + filePath);
+    //     }
+    // }
 
-    void LoadPlayerData()
-    {
-        string filePath = Path.Combine(Application.streamingAssetsPath, "Player.json");
-
-        if (File.Exists(filePath))
-        {
-            string jsonData = File.ReadAllText(filePath);
-            playerData = JsonUtility.FromJson<PlayerData>(jsonData);
-            Debug.Log("Данные игрока успешно загружены!");
-        }
-        else
-        {
-            Debug.LogError("Файл с данными не найден: " + filePath);
-        }
-    }
-
-    void UpdatePlayerData()
-    {
-        string filePath = Path.Combine(Application.streamingAssetsPath, "Player.json");
-
-        if (File.Exists(filePath))
-        {
-            // 1. Читаем данные из файла
-            string jsonData = File.ReadAllText(filePath);
-            PlayerData playerData = JsonUtility.FromJson<PlayerData>(jsonData);
-            string levelIndexString = (levelIndex + 1).ToString();
-            if (!playerData.openedLevels.Contains(levelIndexString))
-            {
-                playerData.openedLevels.Add(levelIndexString);
-            }
-            playerData.totalScore = playerData.totalScore + totalCoin;
-            // 3. Сохраняем обновлённые данные обратно в файл
-            string updatedJsonData = JsonUtility.ToJson(playerData, true);
-            File.WriteAllText(filePath, updatedJsonData);
-
-            Debug.Log("Данные игрока успешно обновлены!");
-        }
-        else
-        {
-            Debug.LogError("Файл с данными не найден: " + filePath);
-        }
-    }
 
     void GetLevelInfo()
     {
@@ -139,7 +100,6 @@ public class CreateLevel : MonoBehaviour
 
     public void ShowPrompt()
     {
-        // Debug.Log("подсказка");
         List<GameObject> safeCell = new List<GameObject>();
         List<GameObject> randomSafeCells = new List<GameObject>();
         List<int> pickedIndices = new List<int>();  // Список использованных индексов
@@ -150,13 +110,13 @@ public class CreateLevel : MonoBehaviour
             {
                 for (int j = 0; j < gridCell.GetLength(1); j++)
                 {
-                    if (!gridCell[i, j].GetComponent<Cell>().isBomb)
+                    if (!gridCell[i, j].GetComponent<Cell>().isBomb && !gridCell[i, j].GetComponent<Cell>().isOpen)
                         safeCell.Add(gridCell[i, j]);
                 }
             }
             prompt--;
         }
-        else return;
+        else SetActiveMenuPrompt();
 
 
         while (cellCount < safeCell.Count)
@@ -190,12 +150,11 @@ public class CreateLevel : MonoBehaviour
 
 
 
-
-
     void Start()
     {
-        LoadGameData();
-        LoadPlayerData();
+        buttonPropmt.GetComponentInChildren<TextMeshProUGUI>().text = prompt.ToString();
+        gameData = LevelDataLoader.LoadGameData();
+        playerData = PlayerDataLoader.LoadPlayerData();
         levelIndex = LevelManager.SelectedLevelIndex;
         GetLevelInfo();
         Debug.Log("Загружен " + levelIndex + "уровень");
@@ -234,6 +193,14 @@ public class CreateLevel : MonoBehaviour
         PlaceNumbersAroundBombs(gridCell); // Расставляем числа вокруг бомб
 
         cameraOriginalPosition = mainCamera.transform.position;  // Сохраняем исходное положение камеры
+    }
+
+    void Update()
+    {
+        if (prompt <= 0)
+        {
+            buttonPropmt.GetComponentInChildren<TextMeshProUGUI>().text = "+";
+        }
     }
 
     public void OnZoomButtonPressed()
@@ -396,7 +363,7 @@ public class CreateLevel : MonoBehaviour
                         {
                             Debug.Log("Вы выиграли!");
                             menuWon.SetActive(true);
-                            UpdatePlayerData();
+                            PlayerDataLoader.UpdatePlayerData(levelIndex, totalCoin);
                             return;
                         }
 
@@ -537,6 +504,18 @@ public class CreateLevel : MonoBehaviour
     {
         menuPause.SetActive(false);
         isPaused = false;
+    }
+
+    public void SetActiveMenuPrompt()
+    {
+        menuPrompt.SetActive(true);
+        // isPaused = true;
+    }
+
+    public void SetInActiveMenuPrompt()
+    {
+        menuPrompt.SetActive(false);
+        // isPaused = false;
     }
 
     public void LoadSceneByName(string sceneName)

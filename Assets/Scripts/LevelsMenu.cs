@@ -17,7 +17,7 @@ public class LevelsSripts : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        LoadData();
+        playerData = PlayerDataLoader.LoadPlayerData();
         playerName.text = "Player  " + playerData.id;
         scoreText.text = playerData.totalScore.ToString();
 
@@ -55,21 +55,6 @@ public class LevelsSripts : MonoBehaviour
     public void LoadSceneByName(string sceneName)
     {
         SceneManager.LoadScene(sceneName);
-    }
-
-    void LoadData()
-    {
-        string filePath = Path.Combine(Application.streamingAssetsPath, "player.json");
-        if (File.Exists(filePath))
-        {
-            string jsonData = File.ReadAllText(filePath);
-            playerData = JsonUtility.FromJson<PlayerData>(jsonData);
-            Debug.Log("Данные игрока успешно загружены!");
-        }
-        else
-        {
-            Debug.LogError("Файл с данными не найден: " + filePath);
-        }
     }
 
     TextMeshProUGUI CreateTextForButton(Button button, string text)
