@@ -18,7 +18,7 @@ public class Animations : MonoBehaviour
     void Start()
     {
         animator = GetComponent<Animator>();
-        animator.applyRootMotion = false; // Отключаем Root Motion
+        // animator.applyRootMotion = false; // Отключаем Root Motion
         audioSource = GetComponent<AudioSource>();
     }
 
@@ -106,6 +106,7 @@ public class Animations : MonoBehaviour
                     {
                         OnCellChecked?.Invoke(targetCell);
                         targetCell = null;
+                       
                     }
                 }
             }

@@ -4615,6 +4615,7 @@ MonoBehaviour:
   menuWon: {fileID: 2138205146}
   menuPause: {fileID: 1847059881}
   menuPrompt: {fileID: 91160387}
+  animator: {fileID: 2018574598}
   buttonPropmt: {fileID: 748918595}
   player: {fileID: 2018574595}
   mainCamera: {fileID: 963194227}
@@ -4795,7 +4796,7 @@ PrefabInstance:
       objectReference: {fileID: 9100000, guid: 8c5a16a236ea9e447b66c1d04ac3d9e7, type: 2}
     - target: {fileID: 5866666021909216657, guid: 6dac881ec6544e149a4e4cc8d69672cc, type: 3}
       propertyPath: m_ApplyRootMotion
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -4935,6 +4936,11 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!95 &2018574598 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 5866666021909216657, guid: 6dac881ec6544e149a4e4cc8d69672cc, type: 3}
+  m_PrefabInstance: {fileID: 2018574594}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &2055121640
 GameObject:
   m_ObjectHideFlags: 0

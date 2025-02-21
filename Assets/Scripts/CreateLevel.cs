@@ -26,6 +26,7 @@ public class CreateLevel : MonoBehaviour
     public GameObject menuWon;
     public GameObject menuPause;
     public GameObject menuPrompt;
+    public Animator animator;
     GameObject instantiatedCell;
     GameObject[,] gridCell;
     public Button buttonPropmt;
@@ -317,8 +318,11 @@ public class CreateLevel : MonoBehaviour
 
     IEnumerator HandleExplosion(GameObject cell)
     {
-        ParticleSystem explosionEffect = cell.transform.Find("ExplosionEffect")?.GetComponent<ParticleSystem>();
+        animator.SetTrigger("IsBomb");
+        // Ждем один кадр, чтобы анимация и эффекты запустились одновременно
+          yield return new WaitForSeconds(0.5f);
 
+        ParticleSystem explosionEffect = cell.transform.Find("ExplosionEffect")?.GetComponent<ParticleSystem>();
         AudioSource audioSource = cell.GetComponentInChildren<AudioSource>();
         // Запускаем звук взрыва
         if (audioSource != null && explosionEffect != null)
@@ -333,7 +337,6 @@ public class CreateLevel : MonoBehaviour
         }
 
 
-
         // Меняем цвет материала клетки на черный
         Renderer cellRenderer = cell.GetComponent<Renderer>();
         if (cellRenderer != null)
@@ -343,8 +346,7 @@ public class CreateLevel : MonoBehaviour
         }
 
         // Делаем небольшую задержку перед проигрышем
-        yield return new WaitForSeconds(1.5f);
-
+        yield return new WaitForSeconds(2f);
         // Показываем меню проигрыша
         menuLost.SetActive(true);
     }
