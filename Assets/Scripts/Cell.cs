@@ -4,10 +4,12 @@ using UnityEngine;
 
 public class Cell : MonoBehaviour
 {
-    public bool isOpen = false;
-    public bool isClose = true;
-    public bool isBomb = false;
-    public int bombAroundCount;
+    [SerializeField] public bool isOpen = false;
+    [SerializeField] public bool isClose = true;
+    [SerializeField] public bool isBomb = false;
+    [SerializeField] public int bombAroundCount;
+
+
 
     public Cell(bool isOpen, bool isClose, bool isBomb, int bombAroundCount)
     {

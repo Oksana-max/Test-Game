@@ -12,17 +12,25 @@ public class Animations : MonoBehaviour
     GameObject targetCell = null;
     public CreateLevel createLevel;
     Vector3 intermediateTarget;
+    private AudioSource audioSource;
+    [SerializeField] AudioClip stepSound;
 
     void Start()
     {
         animator = GetComponent<Animator>();
         animator.applyRootMotion = false; // Отключаем Root Motion
+        audioSource = GetComponent<AudioSource>();
     }
 
 
     void Update()
     {
         MovingCharacter();
+    }
+
+    private void PlaySoundStep()
+    {
+        audioSource.PlayOneShot(stepSound, 1f);
     }
 
     void RotateTowardsTarget(Vector3 target)
@@ -52,13 +60,14 @@ public class Animations : MonoBehaviour
 
             if (Physics.Raycast(ray, out hit))
             {
-                if (hit.transform.CompareTag("Cell"))
+                if (hit.transform.CompareTag("Cell2"))
                 {
-
                     targetCell = hit.transform.gameObject;
+                    // Получаем высоту террейна на позиции клика
+                    float terrainHeight = Terrain.activeTerrain.SampleHeight(hit.transform.position);
                     targetPosition = new Vector3(
                        Mathf.Round(hit.transform.position.x * 2) / 2, // Округление до 0.5
-                       transform.position.y,
+                      terrainHeight,
                        Mathf.Round(hit.transform.position.z * 2) / 2   // Округление до 0.5
                    );
 
@@ -77,6 +86,8 @@ public class Animations : MonoBehaviour
         if (isMoving)
         {
             Vector3 currentTarget = movingInX ? intermediateTarget : targetPosition;
+            float terrainHeight = Terrain.activeTerrain.SampleHeight(currentTarget);
+            currentTarget.y = terrainHeight;
             transform.position = Vector3.MoveTowards(transform.position, currentTarget, 1f * Time.deltaTime);
 
             if (Vector3.Distance(transform.position, currentTarget) < 0.05f)

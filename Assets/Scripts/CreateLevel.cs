@@ -39,22 +39,6 @@ public class CreateLevel : MonoBehaviour
     public GameData gameData;
     public PlayerData playerData;
 
-    // void LoadGameData()
-    // {
-    //     string filePath = Path.Combine(Application.streamingAssetsPath, "Level.json");
-
-    //     if (File.Exists(filePath))
-    //     {
-    //         string jsonData = File.ReadAllText(filePath);
-    //         gameData = JsonUtility.FromJson<GameData>(jsonData);
-    //         Debug.Log("Данные успешно загружены!");
-    //     }
-    //     else
-    //     {
-    //         Debug.LogError("Файл с данными не найден: " + filePath);
-    //     }
-    // }
-
 
     void GetLevelInfo()
     {
@@ -84,7 +68,6 @@ public class CreateLevel : MonoBehaviour
         float centerX = terrainCenter.x + halfWidth - cellSize / 2f;
         float centerZ = terrainCenter.z + halfHeight - cellSize / 2f;
         Vector3 centralCell = new Vector3(centerX, terrainCenter.y, centerZ);
-        Debug.Log(centralCell);
 
         // Позиционирование камеры на определённой высоте и смещении по оси Z
         float distance = Mathf.Max(gridWidth, gridHeight) * 0.7f;  // Дистанция зависит от размера поля
@@ -138,16 +121,52 @@ public class CreateLevel : MonoBehaviour
             Debug.Log(highlighter);
             if (highlighter != null)
             {
-                //Debug.Log("анимация");
                 highlighter.HighlightWithGlow();
             }
 
-            // randomSafeCells[i].GetComponent<Renderer>().material.SetColor("_EmissionColor", Color.blue);
-            // Debug.Log(randomSafeCells[i]);
+
         }
 
     }
 
+    // // Функция корректировки клеток под рельеф
+    // void AdjustMeshToTerrain(GameObject cell, Terrain terrain)
+    // {
+    //     if (cell == null || terrain == null) return;
+
+    //     MeshFilter meshFilter = cell.GetComponent<MeshFilter>();
+    //     if (meshFilter == null) return;
+
+    //     // Создаем копию меша, чтобы избежать ошибки
+    //     Mesh mesh = Instantiate(meshFilter.sharedMesh);
+    //     mesh.name = cell.name + "_Deformed";  // Уникальное имя меша
+
+    //     Vector3[] vertices = mesh.vertices;
+
+    //     for (int i = 0; i < vertices.Length; i++)
+    //     {
+    //         Vector3 worldPos = cell.transform.TransformPoint(vertices[i]); // Перевод в мировые координаты
+    //         float terrainHeight = terrain.SampleHeight(worldPos);          // Получаем высоту террайна
+    //         worldPos.y = terrainHeight + 0.002f;                                    // Устанавливаем новую высоту
+    //         vertices[i] = cell.transform.InverseTransformPoint(worldPos);  // Обратно в локальные координаты
+    //     }
+
+    //     // Обновляем меш
+    //     mesh.vertices = vertices;
+    //     mesh.RecalculateNormals();  // Пересчитываем нормали
+    //     mesh.RecalculateBounds();   // Пересчитываем границы
+
+    //     // Устанавливаем новый меш в MeshFilter
+    //     meshFilter.mesh = mesh;
+
+    //     // Обновляем MeshCollider, если он есть
+    //     MeshCollider meshCollider = cell.GetComponent<MeshCollider>();
+    //     if (meshCollider != null)
+    //     {
+    //         meshCollider.sharedMesh = null;  // Сначала сбрасываем меш
+    //         meshCollider.sharedMesh = mesh;  // Затем обновляем
+    //     }
+    // }
 
 
     void Start()
@@ -162,7 +181,6 @@ public class CreateLevel : MonoBehaviour
         gridCell = new GameObject[rows, cols];
         safeCellsCount = rows * cols - bombCount; // Общее количество клеток минус количество бомб
         terrainCenter = GetTerrainCenter(terrain);
-        float fixedY = 0.03f; // Постоянная высота по оси Y
         for (int i = 0; i < gridCell.GetLength(0); i++)
         {
             for (int j = 0; j < gridCell.GetLength(1); j++)
@@ -172,12 +190,12 @@ public class CreateLevel : MonoBehaviour
                 float z = terrainCenter.z + i * 0.5f;
 
                 // Создаём клетку на вычисленных координатах
-                Vector3 position = new Vector3(x, fixedY, z);
-                instantiatedCell = Instantiate(cell, position, Quaternion.identity);
-                instantiatedCell.transform.Rotate(90, 0, 0);
+                Vector3 position = new Vector3(x, 0.001f, z);
+                instantiatedCell = Instantiate(cell, position, Quaternion.Euler(-90, 0, 0));
                 gridCell[i, j] = instantiatedCell;
                 instantiatedCell.name = $"Cell_{i}_{j}";
-
+                // Подстраиваем сетку поля под рельеф террайна
+                // AdjustMeshToTerrain(instantiatedCell, Terrain.activeTerrain);
                 //.......
                 TextMeshPro textNum = instantiatedCell.GetComponentInChildren<TextMeshPro>();
                 textNum.enabled = false;
@@ -285,7 +303,8 @@ public class CreateLevel : MonoBehaviour
         {
             if (cellComponent.isBomb)
             {
-                menuLost.SetActive(true);
+                StartCoroutine(HandleExplosion(cell));
+                return; // Выход, чтобы не продолжать выполнение кода
             }
         }
 
@@ -295,6 +314,41 @@ public class CreateLevel : MonoBehaviour
         TextMeshPro textNum = cell.GetComponentInChildren<TextMeshPro>();
         textNum.enabled = true;
     }
+
+    IEnumerator HandleExplosion(GameObject cell)
+    {
+        ParticleSystem explosionEffect = cell.transform.Find("ExplosionEffect")?.GetComponent<ParticleSystem>();
+
+        AudioSource audioSource = cell.GetComponentInChildren<AudioSource>();
+        // Запускаем звук взрыва
+        if (audioSource != null && explosionEffect != null)
+        {
+            audioSource.Play();  // Запускаем звук
+        }
+        // Запускаем эффект взрыва
+        if (explosionEffect != null && audioSource != null)
+        {
+            explosionEffect.gameObject.SetActive(true);
+            explosionEffect.Play();  // Запускаем воспроизведение эффекта взрыва
+        }
+
+
+
+        // Меняем цвет материала клетки на черный
+        Renderer cellRenderer = cell.GetComponent<Renderer>();
+        if (cellRenderer != null)
+        {
+            // Меняем цвет материала клетки на черный
+            cellRenderer.material.color = Color.black;
+        }
+
+        // Делаем небольшую задержку перед проигрышем
+        yield return new WaitForSeconds(1.5f);
+
+        // Показываем меню проигрыша
+        menuLost.SetActive(true);
+    }
+
 
 
     GameObject FindSafeCell()

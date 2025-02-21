@@ -1,10 +1,9 @@
 {
     "id": 1,
-    "totalScore": 410,
+    "totalScore": 200,
     "openedLevels": [
         "1",
-        "2",
-        "3"
+        "2"
     ],
     "lastLocation": "Forest"
 }

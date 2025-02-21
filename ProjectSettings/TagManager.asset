@@ -5,6 +5,7 @@ TagManager:
   serializedVersion: 2
   tags:
   - Cell
+  - Cell2
   layers:
   - Default
   - TransparentFX
