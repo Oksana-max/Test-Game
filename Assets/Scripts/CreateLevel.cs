@@ -3,7 +3,6 @@ using TMPro;
 using System.Linq;
 using System.Collections.Generic;
 using System.Collections;
-using System.IO;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -20,69 +19,45 @@ public class CreateLevel : MonoBehaviour
     int prompt = 1;
     bool gameStarted = false;
     public bool isPaused = false;  // Флаг для отслеживания паузы
-    public Terrain terrain;
-    public GameObject cell;
-    public GameObject menuLost;
-    public GameObject menuWon;
-    public GameObject menuPause;
-    public GameObject menuPrompt;
-    public Animator animator;
+    [SerializeField] public Terrain terrain;
+    [SerializeField] public GameObject cell;
+    [SerializeField] public GameObject menuLost;
+    [SerializeField] public GameObject menuWon;
+    [SerializeField] public GameObject menuPause;
+    [SerializeField] public GameObject menuPrompt;
+    [SerializeField] public Animator animator;
     GameObject instantiatedCell;
     GameObject[,] gridCell;
-    public Button buttonPropmt;
+    [SerializeField] public Button buttonPropmt;
     Vector3 terrainCenter;
-    private Vector3 cameraOriginalPosition;
-    private bool isZoomed = false;
-    public Transform player;  // Ссылка на персонажа
-    public Camera mainCamera;  // Ссылка на основную камеру
-    public float zoomSpeed = 2f;  // Скорость зума
-
-    public GameData gameData;
-    public PlayerData playerData;
+    [SerializeField] public Transform player;  // Ссылка на персонажа
+    [SerializeField] public Camera mainCamera;  // Ссылка на основную камеру
+    [SerializeField] public GameData gameData;
+    [SerializeField] public PlayerData playerData;
+    Utility utility;
 
 
     void GetLevelInfo()
     {
-        foreach (var locations in gameData.locations)
+        LevelData levelData = gameData.GetLevelData(levelIndex);
+
+        if (levelData != null)
         {
-            foreach (var level in locations.levels)
-            {
-                if (level.levelIndex == levelIndex)
-                {
-                    rows = level.fieldWidth;
-                    cols = level.fieldHeight;
-                    bombCount = level.bombCount;
-                    levelIndex = level.levelIndex;
-                    totalCoin = level.rewardPoints;
-                }
-            }
+            rows = levelData.fieldWidth;
+            cols = levelData.fieldHeight;
+            bombCount = levelData.bombCount;
+            totalCoin = levelData.rewardPoints;
+            levelIndex = levelData.levelIndex;
         }
-    }
+        else
+        {
+            Debug.LogError("Уровень не найден!");
+        }
 
-    void PositionCamera(Vector3 terrainCenter, int gridWidth, int gridHeight)
-    {
-        float cellSize = 0.5f;
-
-        float halfWidth = gridWidth * cellSize / 2f;
-        float halfHeight = gridHeight * cellSize / 2f;
-
-        float centerX = terrainCenter.x + halfWidth - cellSize / 2f;
-        float centerZ = terrainCenter.z + halfHeight - cellSize / 2f;
-        Vector3 centralCell = new Vector3(centerX, terrainCenter.y, centerZ);
-
-        // Позиционирование камеры на определённой высоте и смещении по оси Z
-        float distance = Mathf.Max(gridWidth, gridHeight) * 0.7f;  // Дистанция зависит от размера поля
-        Camera.main.transform.position = new Vector3(centralCell.x, distance, centralCell.z - distance);
-
-        // Установка угла наклона камеры
-        Camera.main.transform.rotation = Quaternion.Euler(20f, 0f, 0f);
-
-        // Направляем камеру на центральную клетку
-        // Camera.main.transform.LookAt(centralCell);
     }
 
 
-    public void ShowPrompt()
+    public void ShowPrompt()//Подсказка
     {
         List<GameObject> safeCell = new List<GameObject>();
         List<GameObject> randomSafeCells = new List<GameObject>();
@@ -172,6 +147,7 @@ public class CreateLevel : MonoBehaviour
 
     void Start()
     {
+        utility = new Utility();
         buttonPropmt.GetComponentInChildren<TextMeshProUGUI>().text = prompt.ToString();
         gameData = LevelDataLoader.LoadGameData();
         playerData = PlayerDataLoader.LoadPlayerData();
@@ -181,7 +157,7 @@ public class CreateLevel : MonoBehaviour
         Animations.OnCellChecked += CheckCell;
         gridCell = new GameObject[rows, cols];
         safeCellsCount = rows * cols - bombCount; // Общее количество клеток минус количество бомб
-        terrainCenter = GetTerrainCenter(terrain);
+        terrainCenter = utility.GetTerrainCenter(terrain);
         for (int i = 0; i < gridCell.GetLength(0); i++)
         {
             for (int j = 0; j < gridCell.GetLength(1); j++)
@@ -195,9 +171,6 @@ public class CreateLevel : MonoBehaviour
                 instantiatedCell = Instantiate(cell, position, Quaternion.Euler(-90, 0, 0));
                 gridCell[i, j] = instantiatedCell;
                 instantiatedCell.name = $"Cell_{i}_{j}";
-                // Подстраиваем сетку поля под рельеф террайна
-                // AdjustMeshToTerrain(instantiatedCell, Terrain.activeTerrain);
-                //.......
                 TextMeshPro textNum = instantiatedCell.GetComponentInChildren<TextMeshPro>();
                 textNum.enabled = false;
                 GameObject imageBomb = instantiatedCell.transform.Find("Bomb")?.gameObject;
@@ -206,12 +179,8 @@ public class CreateLevel : MonoBehaviour
             }
         }
 
-        PositionCamera(terrainCenter, rows, cols);
-
         PlaceBomb(bombCount, gridCell);  // Расставляем бомбы
         PlaceNumbersAroundBombs(gridCell); // Расставляем числа вокруг бомб
-
-        cameraOriginalPosition = mainCamera.transform.position;  // Сохраняем исходное положение камеры
     }
 
     void Update()
@@ -221,55 +190,6 @@ public class CreateLevel : MonoBehaviour
             buttonPropmt.GetComponentInChildren<TextMeshProUGUI>().text = "+";
         }
     }
-
-    public void OnZoomButtonPressed()
-    {
-        if (!isZoomed)
-        {
-            StartCoroutine(ZoomToPlayer());
-        }
-        else
-        {
-            StartCoroutine(ZoomOut());
-        }
-        isZoomed = !isZoomed;
-    }
-
-    IEnumerator ZoomToPlayer()
-    {
-        Vector3 targetPosition = new Vector3(player.position.x, player.position.y + 2, player.position.z - 2);
-        float duration = 0.5f;  // Длительность зума
-        float elapsedTime = 0f;
-
-        Vector3 startPosition = mainCamera.transform.position;
-
-        while (elapsedTime < duration)
-        {
-            mainCamera.transform.position = Vector3.Lerp(startPosition, targetPosition, elapsedTime / duration);
-            elapsedTime += Time.deltaTime;
-            yield return null;
-        }
-
-        mainCamera.transform.position = targetPosition;  // Убедиться, что камера в точке
-    }
-
-    IEnumerator ZoomOut()
-    {
-        float duration = 0.5f;
-        float elapsedTime = 0f;
-
-        Vector3 startPosition = mainCamera.transform.position;
-
-        while (elapsedTime < duration)
-        {
-            mainCamera.transform.position = Vector3.Lerp(startPosition, cameraOriginalPosition, elapsedTime / duration);
-            elapsedTime += Time.deltaTime;
-            yield return null;
-        }
-
-        mainCamera.transform.position = cameraOriginalPosition;
-    }
-
 
 
     void CheckCell(GameObject cell)
@@ -320,7 +240,7 @@ public class CreateLevel : MonoBehaviour
     {
         animator.SetTrigger("IsBomb");
         // Ждем один кадр, чтобы анимация и эффекты запустились одновременно
-          yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSeconds(0.5f);
 
         ParticleSystem explosionEffect = cell.transform.Find("ExplosionEffect")?.GetComponent<ParticleSystem>();
         AudioSource audioSource = cell.GetComponentInChildren<AudioSource>();
@@ -351,8 +271,6 @@ public class CreateLevel : MonoBehaviour
         menuLost.SetActive(true);
     }
 
-
-
     GameObject FindSafeCell()
     {
         List<GameObject> safeCells = new List<GameObject>();
@@ -378,23 +296,6 @@ public class CreateLevel : MonoBehaviour
         return null;
     }
 
-
-    // Метод для вычисления центра Terrain
-    Vector3 GetTerrainCenter(Terrain terrain)
-    {
-        // Получаем размеры Terrain
-        float width = terrain.terrainData.size.x;
-        float length = terrain.terrainData.size.z;
-
-        // Находим центр
-        float centerX = terrain.transform.position.x + width / 2;
-        float centerZ = terrain.transform.position.z + length / 2;
-
-        // Получаем высоту на позиции центра Terrain
-        float centerY = terrain.SampleHeight(new Vector3(centerX, 0, centerZ));
-
-        return new Vector3(centerX, centerY, centerZ);
-    }
 
 
     void OpenNeighbor(GameObject[,] gridCell, GameObject pressedCell)

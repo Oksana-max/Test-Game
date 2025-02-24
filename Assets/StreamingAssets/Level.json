@@ -18,8 +18,8 @@
           "difficulty": 2,
           "bombCount": 9,
           "rewardPoints": 110,
-          "fieldWidth": 7,
-          "fieldHeight": 7
+          "fieldWidth": 6,
+          "fieldHeight": 6
         },
         {
           "nameLevel": "level3",
@@ -27,8 +27,8 @@
           "difficulty": 3,
           "bombCount": 11,
           "rewardPoints": 130,
-          "fieldWidth": 10,
-          "fieldHeight": 10
+          "fieldWidth": 7,
+          "fieldHeight": 7
         },
         {
           "nameLevel": "level4",
@@ -36,8 +36,62 @@
           "difficulty": 4,
           "bombCount": 15,
           "rewardPoints": 150,
+          "fieldWidth": 8,
+          "fieldHeight": 8
+        },
+        {
+          "nameLevel": "level5",
+          "levelIndex": 5,
+          "difficulty": 4,
+          "bombCount": 15,
+          "rewardPoints": 150,
+          "fieldWidth": 9,
+          "fieldHeight": 9
+        },
+        {
+          "nameLevel": "level6",
+          "levelIndex": 6,
+          "difficulty": 4,
+          "bombCount": 15,
+          "rewardPoints": 150,
+          "fieldWidth": 10,
+          "fieldHeight": 10
+        },
+        {
+          "nameLevel": "level7",
+          "levelIndex": 7,
+          "difficulty": 4,
+          "bombCount": 15,
+          "rewardPoints": 150,
+          "fieldWidth": 11,
+          "fieldHeight": 11
+        },
+        {
+          "nameLevel": "level8",
+          "levelIndex": 8,
+          "difficulty": 4,
+          "bombCount": 15,
+          "rewardPoints": 150,
           "fieldWidth": 12,
           "fieldHeight": 12
+        },
+        {
+          "nameLevel": "level9",
+          "levelIndex": 9,
+          "difficulty": 4,
+          "bombCount": 15,
+          "rewardPoints": 150,
+          "fieldWidth": 13,
+          "fieldHeight": 13
+        },
+        {
+          "nameLevel": "level10",
+          "levelIndex": 10,
+          "difficulty": 4,
+          "bombCount": 15,
+          "rewardPoints": 150,
+          "fieldWidth": 13,
+          "fieldHeight": 13
         }
       ]
     },

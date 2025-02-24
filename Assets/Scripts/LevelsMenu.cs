@@ -49,7 +49,10 @@ public class LevelsSripts : MonoBehaviour
     void LoadLevel(int index)
     {
         LevelManager.SelectedLevelIndex = index;
-        SceneManager.LoadScene("Level1");
+        if (index == 1 || index == 2 || index == 3 || index == 4 || index == 5)
+            SceneManager.LoadScene("Level1,2,3,4,5");
+        if (index == 6 || index == 7 || index == 8 || index == 9 || index == 10)
+            SceneManager.LoadScene("Level6,7,8,9,10");
     }
 
     public void LoadSceneByName(string sceneName)
